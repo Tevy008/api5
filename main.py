@@ -17,11 +17,12 @@ def predict_rub_salary(salary_from = None,salary_to = None):
     return everage_sallary
 
 
-def vocancy_hh(language, page=0):
+def get_vacancies_hh(language, page=0):
     url = "https://api.hh.ru/vacancies" 
+    area = 1
     params = {
         "text": language,
-        "area": 1,
+        "area": area,
         "page": page,
     }
     response = requests.get(url, params=params)
@@ -30,36 +31,35 @@ def vocancy_hh(language, page=0):
 
 
 def get_statistic_hh():
-    found_vocancy = {}
+    found_vacancy = {}
     langs = [
     "python","java",
     ]
     for lang in langs:
-        salary_vocancy=[]
+        salary_vacancyes=[]
         for page in count(0):
-            vocancyes = vocancy_hh(lang, page=page)
-            if page >= vocancyes['pages']-1:
+            vacancyes = get_vacancies_hh(lang, page=page)
+            if page >= vacancyes['pages']-1:
                 break
-            for vocancy in vocancyes["items"]:
-                salary = vocancy.get("salary")
+            for vacancy in vacancyes["items"]:
+                salary = vacancy.get("salary")
                 if salary and salary["currency"] == "RUR":
-                    predict_salary = predict_rub_salary(vocancy["salary"].get("from"),vocancy["salary"].get("to"))
-                    if predict_salary:
-                        salary_vocancy.append(predict_salary)
+                    get_predict_salary = predict_rub_salary(vacancy["salary"].get("from"),vacancy["salary"].get("to"))
+                if get_predict_salary:
+                    salary_vacancyes.append(get_predict_salary)
         everage_salary = None
-        if salary_vocancy:
-            everage_salary = int(sum(salary_vocancy)/len(salary_vocancy)) 
+        if salary_vacancyes:
+            everage_salary = int(sum(salary_vacancyes)/len(salary_vacancyes)) 
             
-        found_vocancy[lang] = {
-            "vacancies_found": vocancyes["found"],
-            "vacancies_processed": len(salary_vocancy),
+        found_vacancy[lang] = {
+            "vacancies_found": vacancyes["found"],
+            "vacancies_processed": len(salary_vacancyes),
             "average_salary": everage_salary,
         }
-    return found_vocancy
+    return found_vacancy
 
 
-def vocancy_sj(lang, page=0):
-    sj_key = os.environ["SJ_KEY"]
+def get_vacancies_sj(sj_key, lang, page=0): 
     url_sj = "https://api.superjob.ru/2.0/vacancies/"
 
     headers = {
@@ -76,47 +76,48 @@ def vocancy_sj(lang, page=0):
     return response.json()
 
     
-def predict_rub_salary_for_superJob():
-    found_vocancy = {}
+def predict_rub_salary_for_superJob(sj_key):
+    found_vacancy = {}
     langs = [
     "python","java","javascript","ruby","php","c++","c#","C",
    ]
     for lang in langs:
-        salary_vocancy=[]
+        salary_vacancyes=[]
         for page in count(0,1):
-            vocancyes = vocancy_sj(lang, page=page)
-            if page in vocancyes['objects']:
+            vacancyes = get_vacancies_sj(sj_key, lang, page=page,)
+            if page in vacancyes['objects']:
                 break
-            for vocancy in vocancyes["objects"]:
-                predict_salary = predict_rub_salary(vocancy["payment_from"],vocancy["payment_to"])
-                if predict_salary:
-                    salary_vocancy.append(predict_salary)
+            for vacancy in vacancyes["objects"]:
+                get_predict_salary = predict_rub_salary(vacancy["payment_from"],vacancy["payment_to"])
+                if get_predict_salary:
+                    salary_vacancyes.append(get_predict_salary)
         everage_salary = None
-        if salary_vocancy:
-            everage_salary = int(sum(salary_vocancy)/len(salary_vocancy)) 
+        if salary_vacancyes:
+            everage_salary = int(sum(salary_vacancyes)/len(salary_vacancyes)) 
             
-        found_vocancy[lang] = {
-            "vacancies_found": vocancyes["found"],
-            "vacancies_processed": len(salary_vocancy),
+        found_vacancy[lang] = {
+            "vacancies_found": vacancyes["found"],
+            "vacancies_processed": len(salary_vacancyes),
             "average_salary": everage_salary,
         }
-    return found_vocancy
+    return found_vacancy
 
 
-def  table(title,statistics):
+def  create_table(title,statistics):
     table_data = [
         ["Язык программирования", "Вакансий найдено", "Вакансий обработано", "Средняя зарплата"]
     ]
-    for lang, vocancyes in statistics.items():
-        table_data.append([lang,vocancyes["vacancies_found"],vocancyes["vacancies_processed"],vocancyes["average_salary"]])
+    for lang, vacancyes in statistics.items():
+        table_data.append([lang,vacancyes["vacancies_found"],vacancyes["vacancies_processed"],vacancyes["average_salary"]])
     table = AsciiTable(table_data, title)
     return table.table
 
 
 def main():
     load_dotenv()
-    print(table("hh Moscow",get_statistic_hh()))
-    print(table("sj Moscow",vocancy_sj()))
+    sj_key = os.environ["SJ_KEY"]
+    print(create_table("hh Moscow",get_statistic_hh()))
+    print(create_table("sj Moscow",get_vacancies_sj(sj_key)))
     
     
 if __name__ == "__main__":
