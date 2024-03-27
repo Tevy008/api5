@@ -125,7 +125,7 @@ def main():
     load_dotenv()
     sj_key = os.environ["SJ_KEY"]
     print(create_table("hh Moscow",get_statistic_hh()))
-    print(create_table("sj Moscow",get_vacancies_sj(sj_key)))
+    print(create_table("sj Moscow",predict_rub_salary_for_superJob(sj_key)))
     
     
 if __name__ == "__main__":
