@@ -37,7 +37,7 @@ def get_statistic_hh():
         "java",
     ]
     for lang in langs:
-        salary_vacancies=[]
+        salaries_vacancies=[]
         for page in count(0):
             vacancies = get_vacancies_hh(lang, page=page)
             if page >= vacancies['pages']-1:
@@ -47,14 +47,14 @@ def get_statistic_hh():
                 if salary and salary["currency"] == "RUR":
                     predicted_salary = predict_rub_salary(vacancy["salary"].get("from"),vacancy["salary"].get("to"))
                 if predicted_salary:
-                    salary_vacancies.append(predicted_salary)
+                    salaries_vacancies.append(predicted_salary)
         average_salary = None
-        if salary_vacancies:
-            average_salary = int(sum(salary_vacancies)/len(salary_vacancies)) 
+        if salaries_vacancies:
+            average_salary = int(sum(salaries_vacancies)/len(salaries_vacancies)) 
             
         vacancies_found[lang] = {
             "vacancies_found": vacancies["found"],
-            "vacancies_processed": len(salary_vacancies),
+            "vacancies_processed": len(salaries_vacancies),
             "average_salary": average_salary,
         }
     return vacancies_found
@@ -90,7 +90,7 @@ def predict_rub_salary_for_superJob(sj_key):
         "C",
     ]
     for lang in langs:
-        salary_vacancies=[]
+        salaries_vacancies=[]
         for page in count(0,1):
             vacancies = get_vacancies_sj(sj_key, lang, page=page,)
             if not vacancies['objects']:
@@ -98,14 +98,14 @@ def predict_rub_salary_for_superJob(sj_key):
             for vacancy in vacancies["objects"]:
                 predicted_salary = predict_rub_salary(vacancy["payment_from"],vacancy["payment_to"])
                 if predicted_salary:
-                    salary_vacancies.append(predicted_salary)
+                    salaries_vacancies.append(predicted_salary)
         average_salary = None
-        if salary_vacancies:
-            average_salary = int(sum(salary_vacancies)/len(salary_vacancies)) 
+        if salaries_vacancies:
+            average_salary = int(sum(salaries_vacancies)/len(salaries_vacancies)) 
             
         vacancies_found[lang] = {
             "vacancies_found": vacancies["found"],
-            "vacancies_processed": len(salary_vacancies),
+            "vacancies_processed": len(salaries_vacancies),
             "average_salary": average_salary,
         }
     return vacancies_found
